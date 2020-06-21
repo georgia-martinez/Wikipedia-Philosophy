@@ -2,12 +2,16 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import requests
 import re
-import time
+import tkinter
+from tkinter import messagebox
 from link import Link
 
 # Start with a random Wikipedia article
 new_page = 'https://en.wikipedia.org/wiki/Special:Random'
 browser = webdriver.Chrome('/Users/georgiamartinez/Downloads/chromedriver')
+
+root = tkinter.Tk()
+root.withdraw()
 
 pages_visited = []
 search = True
@@ -22,8 +26,10 @@ while search:
     title = soup.find('h1').text
 
     if title == 'Philosophy':
+        search = False
         print('\n' + title + '!!!')
         print('It took ' + str(tries) + ' links to get from ' + pages_visited[0] + ' to Philosophy.')
+        tkinter.messagebox.showinfo('Philosophy Program', 'It took ' + str(tries) + ' links to get from ' + pages_visited[0] + ' to Philosophy.')
         break
     else:
         print('\n' + title)
@@ -32,11 +38,10 @@ while search:
     print(browser.current_url)
 
     # Check for loops
-    for name in pages_visited:
-        if name == title:
-            print('Loop')
-            search = False
-            break
+    if title in pages_visited:
+        print('LOOP FOUND: Stopping program')
+        tkinter.messagebox.showinfo('Philosophy Program', 'LOOP FOUND: Stopping program')
+        break
 
     pages_visited.append(title)
 
@@ -47,6 +52,7 @@ while search:
     for unwanted in soup.find_all(['span', 'table', 'small']):
         unwanted.replace_with('')
 
+    # Find all paragraph tags and remove ( )
     paragraph = paragraph.find_all('p')
     paragraph = re.sub(r' \(.*?\)', '', str(paragraph))
     paragraph = BeautifulSoup(paragraph, 'lxml')
@@ -56,7 +62,7 @@ while search:
     for p in paragraph.find_all('p'):
         text += p.text
 
-    # Get all links
+    # Get the first link
     all_links = []
 
     for link in paragraph.find_all('a', href=True):
@@ -65,40 +71,23 @@ while search:
 
         if url.startswith('/wiki/') and len(name) > 1 and not name == '':
             all_links.append(Link(name, url))
+            break
 
-    paragraph = str(paragraph)
-
-    # Find all dialogue tags
-    for x in paragraph:
-        if x.find('&quot;'):
-            paragraph = paragraph.replace('&quot;', '\"')
-
-    # Find the first link
-    first_link = Link(all_links[0].name, all_links[0].url)
-
-    # index = len(paragraph)
-    # for link in all_links:
-    #     name = link.name
-    #     url = link.url
-    #     new_index = paragraph.index(url)
-    #
-    #     if paragraph.index(url) > - 1:
-    #         print('FOUND: ' + name + ' [' + str(paragraph.index(url)) + ']' + url)
-    #
-    #         if new_index < index:
-    #             print('NEW INDEX: ' + name + ' [' + str(paragraph.index(url)) + '] ' + url)
-    #             first_link = link
-    #             index = new_index
-
-    tries += 1
+    if len(all_links):
+        first_link = Link(all_links[0].name, all_links[0].url)
+    else:
+        print('Could not find a link')
+        tkinter.messagebox.showinfo('Philosophy', 'COULD NOT FIND LINK: Stopping program')
+        break
 
     if '(disambiguation)' in first_link.url:
         first_link.url = first_link.url.replace('(disambiguation)', '')
+
+    tries += 1
 
     print('First link: ' + first_link.name + ', ' + first_link.url)
 
     new_page = ('https://en.wikipedia.org' + first_link.url)
     print('New page: ' + new_page)
 
-time.sleep(5)
-browser.close()
+browser.quit()

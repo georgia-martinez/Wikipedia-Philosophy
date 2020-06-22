@@ -1,3 +1,4 @@
-Pages that don't work:
+Stuff to fix:
 
-https://en.wikipedia.org/wiki/48
+- messagebox won't close when yes is clicked
+- error message after browser is closed

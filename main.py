@@ -4,6 +4,7 @@ import requests
 import re
 import tkinter
 from tkinter import messagebox
+import time
 from link import Link
 
 # Start with a random Wikipedia article
@@ -17,6 +18,8 @@ pages_visited = []
 search = True
 tries = 0
 
+start_time = time.perf_counter()
+
 while search:
     browser.get(new_page)
     source = requests.get(browser.current_url).text
@@ -26,14 +29,17 @@ while search:
     title = soup.find('h1').text
 
     if title == 'Philosophy':
-        search = False
-        print('\n' + title + '!!!')
-        print('It took ' + str(tries) + ' links to get from ' + pages_visited[0] + ' to Philosophy.')
-        tkinter.messagebox.showinfo('Philosophy Program', 'It took ' + str(tries) + ' links to get from ' + pages_visited[0] + ' to Philosophy.')
+        finish_time = time.perf_counter()
+        time = round(finish_time - start_time, 3)
+
+        print('\nPhilosophy!!!')
+        print(f'It took {tries} links to get from "{pages_visited[0]}" to "Philosophy".')
+        tkinter.messagebox.showinfo('Philosophy Program', f'It took {tries} links to get from "{pages_visited[0]}" '
+                                                          f'to "Philosophy".\n\nTime: {time}')
         break
     else:
-        print('\n' + title)
-        print('Page: ' + str(tries))
+        print(f'\n{title}')
+        print(f'Page: {tries}')
 
     print(browser.current_url)
 
@@ -85,9 +91,9 @@ while search:
 
     tries += 1
 
-    print('First link: ' + first_link.name + ', ' + first_link.url)
+    print(f'First link: {first_link.name}, {first_link.url}')
 
-    new_page = ('https://en.wikipedia.org' + first_link.url)
-    print('New page: ' + new_page)
+    new_page = f'https://en.wikipedia.org{first_link.url}'
+    print(f'New page: {new_page}')
 
 browser.quit()

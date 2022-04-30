@@ -1,20 +1,26 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from link import Link
+
 import requests
 import re
 import tkinter
-from tkinter import messagebox
+import tkinter.messagebox
 import time
-from link import Link
 
-browser = webdriver.Chrome('/Users/georgiamartinez/Downloads/chromedriver')
+browser = webdriver.Chrome(ChromeDriverManager().install())
 
 root = tkinter.Tk()
 root.withdraw()
 
-
-# Find all wiki links
 def find_link(paragraph):
+    """
+    Finds all the wiki links in a paragraph and returns them
+    :param paragraph: paragraph to search through
+    :return: new link
+    """
+
     for link in paragraph.find_all('a', href=True):
         name = link.text
         url = str(link['href'])
@@ -25,19 +31,31 @@ def find_link(paragraph):
             break
 
 
-# Display message
 def show_message(message):
+    """
+    Displays a message
+    :param message: message to be displayed
+    """
+
     print(message)
     input = tkinter.messagebox.askquestion('Philosophy Program', message + '\n\nWould you like to run the program again?')
 
     if input == 'yes':
-        print('\nNEW RUN: ')
+        root.quit()
         search()
+
+        print('\nNEW RUN: ')
     else:
-        browser.quit()
+        browser.quit() 
+
 
 # Random page to Philosophy
 def search():
+    """
+    Starts on a random wikipedia page and keeps clicking the first link until the Philosophy page is reached or it
+    gets stuck in a loop
+    """
+
     new_page = 'https://en.wikipedia.org/wiki/Special:Random'
     pages_visited = []
     tries = 0
@@ -46,6 +64,7 @@ def search():
 
     while True:
         browser.get(new_page)
+
         source = requests.get(browser.current_url).text
         soup = BeautifulSoup(source, 'lxml')
 
@@ -63,9 +82,6 @@ def search():
 
         else:
             print(title)
-            # print(f'\n{title}')
-            # print(f'Page: {tries}')
-            # print(browser.current_url)
 
         # Check for loops
         if title in pages_visited:
@@ -114,6 +130,6 @@ def search():
         new_page = f'https://en.wikipedia.org{first_link.url}'
         # print(f'New page: {new_page}')
 
+if __name__ == "__main__":
+    search()  # Run the program
 
-# Run the program
-search()
